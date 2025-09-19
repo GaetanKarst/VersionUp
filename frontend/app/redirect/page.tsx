@@ -22,7 +22,9 @@ export default function StravaRedirectPage() {
 
     if (code) {
       const exchangeToken = async () => {
+        
         try {
+          console.log("status is: ", status);
           await axios.get(`http://localhost:8000/exchange_token?code=${code}`);
           setStatus('Authentication successful! Redirecting to your activities...');
           router.push('/activities');
