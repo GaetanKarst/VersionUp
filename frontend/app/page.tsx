@@ -38,7 +38,7 @@ export default function HomePage() {
           disabled={isLoading}
           className="rounded-md bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 disabled:bg-gray-400"
         >
-          {isLoading ? 'Connecting...' : 'Connected!'}
+          {isLoading ? 'Connecting...' : 'Connect with Strava!'}
         </button>
       </div>
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
