@@ -2,105 +2,119 @@
 
 import { useState, FormEvent } from 'react';
 
-export default function SuggestPage() {
+export default function SuggestWorkoutPage() {
   const [goal, setGoal] = useState('Build Endurance');
   const [equipment, setEquipment] = useState('');
   const [time, setTime] = useState(45);
-  const [suggestion, setSuggestion] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // TODO: Implement API call to the backend to get a workout suggestion
-    console.log({ goal, equipment, time });
     setIsLoading(true);
-    // Fake loading for now to show UI changes
-    setTimeout(() => {
-      setSuggestion('This is a placeholder for an AI-generated workout suggestion. Implement the backend endpoint and call it here.');
+    setError('');
+    setSuggestion('');
+
+    try {
+      // TODO: Replace with production API endpoint URL
+      const response = await fetch('http://localhost:8000/suggest_workout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ goal, equipment, time }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to get suggestion.');
+      }
+
+      const data = await response.json();
+      setSuggestion(data.suggestion);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Get a Workout Suggestion</h1>
-      <p className="mb-6 text-gray-600 dark:text-gray-300">
-        Tell us your goals and we&apos;ll generate a personalized workout for you.
-      </p>
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-        <div>
-          <label htmlFor="goal" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
-            Primary Goal
-          </label>
-          <div className="mt-2">
-            <select
-              id="goal"
-              name="goal"
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:bg-gray-700 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+    <main className="container mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold mb-2">Get a Workout Suggestion</h1>
+        <p className="text-slate-400 mb-8">
+          Tell us your goals and we'll generate a personalized workout for you.
+        </p>
+
+        {!suggestion && !isLoading && (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="goal" className="block text-sm font-medium text-slate-300 mb-2">
+                Primary Goal
+              </label>
+              <select
+                id="goal"
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 rounded-md p-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option>Build Endurance</option>
+                <option>Build Muscle</option>
+                <option>Lose Weight</option>
+                <option>Improve Flexibility</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="equipment" className="block text-sm font-medium text-slate-300 mb-2">
+                Available Equipment
+              </label>
+              <input
+                type="text"
+                id="equipment"
+                value={equipment}
+                onChange={(e) => setEquipment(e.target.value)}
+                placeholder="e.g., Dumbbells, resistance bands, treadmill"
+                className="w-full bg-slate-800 border border-slate-700 rounded-md p-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="time" className="block text-sm font-medium text-slate-300 mb-2">
+                Time Available (minutes)
+              </label>
+              <input
+                type="number"
+                id="time"
+                value={time}
+                onChange={(e) => setTime(parseInt(e.target.value, 10))}
+                className="w-full bg-slate-800 border border-slate-700 rounded-md p-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition-colors"
+              disabled={isLoading}
             >
-              <option>Build Endurance</option>
-              <option>Increase Strength</option>
-              <option>Lose Weight</option>
-              <option>Active Recovery</option>
-            </select>
+              {isLoading ? 'Generating...' : 'Suggest Workout'}
+            </button>
+          </form>
+        )}
+
+        {isLoading && <p className="text-center text-slate-400">Generating your workout...</p>}
+
+        {error && <p className="text-center text-red-500">{error}</p>}
+
+        {suggestion && (
+          <div className="bg-slate-800 p-6 rounded-lg mt-8 whitespace-pre-wrap font-mono">
+            <h2 className="text-2xl font-bold mb-4">Your Personalized Workout</h2>
+            <p>{suggestion}</p>
           </div>
-        </div>
-
-        <div>
-          <label htmlFor="equipment" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
-            Available Equipment
-          </label>
-          <div className="mt-2">
-            <input
-              type="text"
-              name="equipment"
-              id="equipment"
-              value={equipment}
-              onChange={(e) => setEquipment(e.target.value)}
-              placeholder="e.g., Dumbbells, resistance bands, treadmill"
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:bg-gray-700 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="time" className="block text-sm font-medium leading-6 text-gray-900 dark:text-gray-100">
-            Time Available (minutes)
-          </label>
-          <div className="mt-2">
-            <input
-              type="number"
-              name="time"
-              id="time"
-              value={time}
-              onChange={(e) => setTime(parseInt(e.target.value, 10))}
-              min="10"
-              className="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:bg-gray-700 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:bg-gray-400"
-          >
-            {isLoading ? 'Generating...' : 'Suggest Workout'}
-          </button>
-        </div>
-      </form>
-
-      {suggestion && (
-        <div className="mt-8 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <h2 className="text-2xl font-bold text-green-800 dark:text-green-300">Your Workout Suggestion</h2>
-          <p className="mt-4 text-gray-700 dark:text-gray-300">
-            {suggestion}
-          </p>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </main>
   );
 }

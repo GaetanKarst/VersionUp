@@ -12,9 +12,9 @@ The primary goal of this project is to serve as a practical learning experience 
 
 ## Screenshots
 
-<img src="./assets/connection-screen.png" alt="Connection Screen" width="500"/>
-<img src="./assets/activity-screen.png" alt="Activity Screen" width="500"/>
-<img src="./assets/suggestion-screen.png" alt="Suggestion Screen" width="500"/>
+<p align="center"><img src="./assets/connection-screen.png" alt="Connection Screen" width="700"/></p>
+<p align="center"><img src="./assets/activity-screen.png" alt="Activity Screen" width="700"/></p>
+<p align="center"><img src="./assets/suggestion-screen.png" alt="Suggestion Screen" width="700"/></p>
 
 ## Tech Stack
 

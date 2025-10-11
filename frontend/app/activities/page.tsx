@@ -11,6 +11,7 @@ export default function ActivitiesPage() {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
+        // TODO: Replace with production API endpoint
         const response = await axios.get<StravaActivity[]>('http://localhost:8000/activities');
         setActivities(response.data);
       } catch (err) {

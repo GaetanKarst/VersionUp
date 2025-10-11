@@ -25,6 +25,7 @@ export default function StravaRedirectPage() {
         
         try {
           console.log("status is: ", status);
+          // TODO: Replace with production API endpoint URL
           await axios.get(`http://localhost:8000/exchange_token?code=${code}`);
           setStatus('Authentication successful! Redirecting to your activities...');
           router.push('/activities');
