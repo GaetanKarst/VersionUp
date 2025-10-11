@@ -16,6 +16,8 @@ The primary goal of this project is to serve as a practical learning experience 
 <p align="center"><img src="./assets/activity-screen.png" alt="Activity Screen" width="700"/></p>
 <p align="center"><img src="./assets/suggestion-screen.png" alt="Suggestion Screen" width="700"/></p>
 <p align="center"><img src="./assets/workout-suggestion.png" alt="Workout suggestion" width="700"/></p>
+<p align="center"><img src="./assets/workout-suggestion2.png" alt="Workout suggestion 2" width="700"/></p>
+<p align="center"><img src="./assets/workout-suggestion3.png" alt="Workout suggestion 3" width="700"/></p>
 
 ## Tech Stack
 
@@ -35,6 +37,8 @@ The project is built with a modern, full-stack architecture:
 ### External Services
 
 *   **Data Source**: [Strava API](https://developers.strava.com/)
+    **AI Model**: [Llama-3.1-8B-InstructI](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
+    **Model provider**: [HuggingFace](https://huggingface.co/)
 
 ## Getting Started
 
@@ -44,7 +48,7 @@ To get the project running locally, follow these steps.
 
 *   Node.js (v18+)
 *   Python (v3.11+)
-*   A Strava account and API application credentials.
+*   A Strava account
 
 ### Backend Setup
 
