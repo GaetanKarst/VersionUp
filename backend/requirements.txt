@@ -4,4 +4,4 @@ requests
 python-dotenv
 pandas
 python-multipart
-openai
+huggingface-hub

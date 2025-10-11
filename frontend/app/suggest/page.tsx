@@ -45,7 +45,7 @@ export default function SuggestWorkoutPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">Get a Workout Suggestion</h1>
         <p className="text-slate-400 mb-8">
-          Tell us your goals and we'll generate a personalized workout for you.
+          Need some suggestion for your workout? Let's get some work done! 💪
         </p>
 
         {!suggestion && !isLoading && (
