@@ -108,9 +108,6 @@ def suggest_workout(request: WorkoutRequest):
     if not access_token:
         raise HTTPException(status_code=401, detail="Not authenticated. Please connect to Strava first.")
 
-    if not client.api_key:
-        raise HTTPException(status_code=500, detail="Server configuration error: AI API key not set.")
-
     try:
         activities = strava_client.get_activities(access_token=access_token, per_page=NBR_OF_ACTIVITIES)
     except Exception as e:
@@ -133,7 +130,7 @@ def suggest_workout(request: WorkoutRequest):
 
     try:
         response = client.chat.completions.create(
-            model="meta-llama/Llama-3.1-8B-Instruct-Turbo",
+            model="meta-llama/Llama-3.1-8B-Instruct",
             messages=[
                 {"role": "system", "content": "You are a helpful and knowledgeable workout coach."},
                 {"role": "user", "content": prompt}

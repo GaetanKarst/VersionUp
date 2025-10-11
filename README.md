@@ -10,6 +10,12 @@ This project is mobile-first, ensuring a seamless experience on any device.
 
 The primary goal of this project is to serve as a practical learning experience for integrating Artificial Intelligence into a real-world, full-stack application. It explores the end-to-end process from data acquisition (via the Strava API) and data processing to generating intelligent, actionable insights for the user.
 
+## Screenshots
+
+<img src="./assets/connection-screen.png" alt="Connection Screen" width="500"/>
+<img src="./assets/activity-screen.png" alt="Activity Screen" width="500"/>
+<img src="./assets/suggestion-screen.png" alt="Suggestion Screen" width="500"/>
+
 ## Tech Stack
 
 The project is built with a modern, full-stack architecture:
