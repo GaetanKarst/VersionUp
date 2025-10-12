@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { auth } from '@/lib/firebase';
 
 export default function StravaRedirectPage() {
   const searchParams = useSearchParams();
@@ -21,23 +22,37 @@ export default function StravaRedirectPage() {
     }
 
     if (code) {
-      const exchangeToken = async () => {
-        
-        try {
-          console.log("status is: ", status);
-          // TODO: Replace with production API endpoint URL
-          await axios.get(`http://localhost:8000/exchange_token?code=${code}`);
-          setStatus('Authentication successful! Redirecting to your activities...');
-          router.push('/activities');
-        } catch (err) {
-          const errorMessage = axios.isAxiosError(err) && err.response?.data?.detail 
-            ? err.response.data.detail 
-            : (err instanceof Error ? err.message : 'An unknown error occurred.');
-          setError(errorMessage);
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        unsubscribe();
+
+        if (user) {
+          try {
+            const idToken = await user.getIdToken();
+
+            // TODO: Replace with production API endpoint URL when deploying
+            const response = await fetch(`http://localhost:8000/exchange_token?code=${code}`, {
+              headers: {
+                'Authorization': `Bearer ${idToken}`
+              }
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.detail || 'Failed to exchange Strava token.');
+            }
+
+            setStatus('Authentication successful! Redirecting to your activities...');
+            router.push('/activities');
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setError(errorMessage);
+            setStatus('Authentication Failed.');
+          }
+        } else {
+          setError("You must be logged in to connect a Strava account.");
           setStatus('Authentication Failed.');
         }
-      };
-      exchangeToken();
+      });
     } else {
         setStatus('Invalid redirection. No authorization code found.');
         setError('Could not find authorization code in the redirect URL.');

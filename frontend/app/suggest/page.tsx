@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { auth } from '@/lib/firebase';
+import { useState, FormEvent, useEffect } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
 
 export default function SuggestWorkoutPage() {
   const [goal, setGoal] = useState('Build Endurance');
+  const [user, setUser] = useState<User | null>(null);
   const [equipment, setEquipment] = useState('');
   const [time, setTime] = useState(45);
   const [suggestion, setSuggestion] = useState('');
@@ -12,16 +15,31 @@ export default function SuggestWorkoutPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+      setError('You must be logged in to get a suggestion.');
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     setSuggestion('');
 
+    if (!user) {
+      setError('You must be logged in to get a suggestion.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      const token = await user.getIdToken();
       // TODO: Replace with production API endpoint URL
       const response = await fetch('http://localhost:8000/suggest_workout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ goal, equipment, time }),
       });
@@ -40,12 +58,19 @@ export default function SuggestWorkoutPage() {
     }
   };
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-2">Get a Workout Suggestion</h1>
         <p className="text-slate-400 mb-8">
-          Need some suggestion for your workout? Let's get some work done! 💪
+          Tell us your goals and we'll generate a personalized workout for you.
         </p>
 
         {!suggestion && !isLoading && (

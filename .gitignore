@@ -13,6 +13,7 @@ __pycache__/
 *.pyd
 *.egg-info/
 *.egg
+backend/firebase-service-account.json
 *.pytest_cache/
 backend/.env
 

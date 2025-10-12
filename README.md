@@ -37,8 +37,9 @@ The project is built with a modern, full-stack architecture:
 ### External Services
 
 *   **Data Source**: [Strava API](https://developers.strava.com/)
-    **AI Model**: [Llama-3.1-8B-InstructI](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
-    **Model provider**: [HuggingFace](https://huggingface.co/)
+*   **AI Model**: [Llama-3.1-8B-InstructI](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct)
+*   **Model provider**: [HuggingFace](https://huggingface.co/)
+*   **Authentication & DB**: [Firebase](https://firebase.google.com/) (Auth and Firestore)
 
 ## Getting Started
 
@@ -55,11 +56,13 @@ To get the project running locally, follow these steps.
 1.  Navigate to the `backend` directory.
 2.  Create and activate a virtual environment: `python3 -m venv venv && source venv/bin/activate`
 3.  Install dependencies: `pip install -r requirements.txt`
-4.  Create a `.env` file from `.env.example` and add your Strava API credentials.
+4.  Create a `.env` file and add your Strava and AI provider credentials.
+5.  Download your `firebase-service-account.json` from the Firebase Console and place it in this directory.
 5.  Run the server: `uvicorn main:app --reload`
 
 ### Frontend Setup
 
 1.  Navigate to the `frontend` directory.
 2.  Install dependencies: `npm install`
+3.  Create a `.env.local` file and add your Firebase web app configuration keys (prefixed with `NEXT_PUBLIC_`).
 3.  Run the development server: `npm run dev`

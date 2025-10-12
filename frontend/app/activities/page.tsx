@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState<StravaActivity[]>([]);
@@ -9,27 +11,35 @@ export default function ActivitiesPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      try {
-        // TODO: Replace with production API endpoint
-        const response = await axios.get<StravaActivity[]>('http://localhost:8000/activities');
-        setActivities(response.data);
-      } catch (err) {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 401) {
-            setError('Authentication required. Please connect with Strava first.');
-          } else {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const token = await user.getIdToken();
+          // TODO: Replace with production API endpoint
+          const response = await axios.get<StravaActivity[]>('http://localhost:8000/activities', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          setActivities(response.data);
+        } catch (err) {
+          if (axios.isAxiosError(err)) {
             setError(err.response?.data?.detail || 'Failed to fetch activities.');
+          } else {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
           }
-        } else {
-          setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+        } finally {
+          setIsLoading(false);
         }
-      } finally {
+      } else {
+        // No user is signed in.
+        setError('You must be logged in to view activities.');
         setIsLoading(false);
       }
-    };
+    });
 
-    fetchActivities();
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
   const formatDistance = (distanceInMeters: number) => {

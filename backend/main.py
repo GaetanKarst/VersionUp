@@ -1,11 +1,13 @@
 import os
 import textwrap
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 import strava_client
 from ai_client import client
+from auth import get_current_user
+from firebase_setup import db as firestore_db # This will trigger initialization
 
 load_dotenv()
 
@@ -25,15 +27,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     # TODO: Replace with production frontend URL
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# --- In-memory Token Storage ---
-# TODO: Replace with session management system
-token_storage = {}
 
 # --- Pydantic Models ---
 class WorkoutRequest(BaseModel):
@@ -59,55 +57,62 @@ def get_strava_auth_url():
     return {"authorization_url": authorization_url}
 
 @app.get("/exchange_token")
-def exchange_token(code: str = Query(...)):
+def exchange_token(code: str = Query(...), user: dict = Depends(get_current_user)):
     """
     Exchanges the authorization 'code' from Strava for an access token and refresh token.
-    Tokens are stored in memory for subsequent API calls.
+    Tokens are stored in Firestore for the authenticated user.
     """
     if not all([STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET]):
         raise HTTPException(status_code=500, detail="Server configuration error: Strava client details not set.")
 
+    user_uid = user.get("uid")
     try:
         token_data = strava_client.get_tokens(
             client_id=STRAVA_CLIENT_ID,
             client_secret=STRAVA_CLIENT_SECRET,
             code=code
         )
-        # Store tokens in in-memory storage
-        token_storage['access_token'] = token_data.get('access_token')
-        token_storage['refresh_token'] = token_data.get('refresh_token')
-        token_storage['expires_at'] = token_data.get('expires_at')
+        # Store tokens in Firestore, linked to the user's UID
+        user_doc_ref = firestore_db.collection('users').document(user_uid)
+        user_doc_ref.set({'strava_tokens': token_data}, merge=True)
         
         return {"message": "Token exchanged successfully."}
     except Exception as e:
         print(f"Error exchanging token: {e}")
         raise HTTPException(status_code=400, detail="Failed to exchange token with Strava.")
 
-@app.get("/activities")
-def list_activities():
+@app.get("/activities", dependencies=[Depends(get_current_user)])
+def list_activities(user: dict = Depends(get_current_user)):
     """
     Fetches the last 5 activities.
     """
-    access_token = token_storage.get('access_token')
+    user_uid = user.get("uid")
+    user_doc = firestore_db.collection('users').document(user_uid).get()
+    if not user_doc.exists or 'strava_tokens' not in user_doc.to_dict():
+        raise HTTPException(status_code=401, detail="Strava account not connected.")
+
+    access_token = user_doc.to_dict()['strava_tokens'].get('access_token')
     if not access_token:
-        raise HTTPException(status_code=401, detail="Not authenticated. Please connect to Strava first.")
+        raise HTTPException(status_code=401, detail="Invalid Strava token.")
 
     try:
-        activities = strava_client.get_activities(access_token=access_token, per_page = NBR_OF_ACTIVITIES)
+        activities = strava_client.get_activities(access_token=access_token, per_page=NBR_OF_ACTIVITIES)
         return activities
     except Exception as e:
         print(f"Error fetching activities: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch activities from Strava.")
 
 @app.post("/suggest_workout")
-def suggest_workout(request: WorkoutRequest):
+def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_user)):
     """
     Generates a workout suggestion based on user's goals and recent activities.
     """
-    access_token = token_storage.get('access_token')
-    
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Not authenticated. Please connect to Strava first.")
+    user_uid = user.get("uid")
+    user_doc = firestore_db.collection('users').document(user_uid).get()
+    if not user_doc.exists or 'strava_tokens' not in user_doc.to_dict():
+        raise HTTPException(status_code=401, detail="Strava account not connected.")
+
+    access_token = user_doc.to_dict()['strava_tokens'].get('access_token')
 
     try:
         activities = strava_client.get_activities(access_token=access_token, per_page=NBR_OF_ACTIVITIES)
