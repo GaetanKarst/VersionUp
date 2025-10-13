@@ -35,7 +35,7 @@ export default function SuggestWorkoutPage() {
 
     try {
       const token = await user.getIdToken();
-      // TODO: Replace with production API endpoint URL
+      // TODO: Replace with production API endpoint URL when deploying
       const response = await fetch('http://localhost:8000/suggest_workout', {
         method: 'POST',
         headers: {
@@ -65,7 +65,7 @@ export default function SuggestWorkoutPage() {
       if (currentUser) {
         try {
           const token = await currentUser.getIdToken();
-          // TODO: Replace with production API endpoint
+          // TODO: Replace with your production API endpoint URL when deploying
           const response = await fetch('http://localhost:8000/strava/status', {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -79,8 +79,6 @@ export default function SuggestWorkoutPage() {
           console.error("Failed to fetch Strava connection status:", error);
           setIsStravaConnected(true);
         }
-      } else {
-        setIsStravaConnected(false);
       }
     });
     return () => unsubscribe();
