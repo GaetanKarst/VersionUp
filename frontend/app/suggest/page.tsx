@@ -12,6 +12,7 @@ export default function SuggestWorkoutPage() {
   const [suggestion, setSuggestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isStravaConnected, setIsStravaConnected] = useState(true);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -59,8 +60,28 @@ export default function SuggestWorkoutPage() {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        try {
+          const token = await currentUser.getIdToken();
+          // TODO: Replace with production API endpoint
+          const response = await fetch('http://localhost:8000/strava/status', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setIsStravaConnected(data.is_connected);
+          }
+        } catch (error) {
+          console.error("Failed to fetch Strava connection status:", error);
+          setIsStravaConnected(true);
+        }
+      } else {
+        setIsStravaConnected(false);
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -72,6 +93,13 @@ export default function SuggestWorkoutPage() {
         <p className="text-slate-400 mb-8">
           Tell us your goals and we'll generate a personalized workout for you.
         </p>
+
+        {!isStravaConnected && (
+          <div className="bg-blue-900/50 border border-blue-700 text-blue-200 px-4 py-3 rounded-md relative mb-6" role="alert">
+            <strong className="font-bold">Tip: </strong>
+            <span className="block sm:inline">Connect your Strava account for suggestions tailored to your recent activities!</span>
+          </div>
+        )}
 
         {!suggestion && !isLoading && (
           <form onSubmit={handleSubmit} className="space-y-6">

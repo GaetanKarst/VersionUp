@@ -81,6 +81,20 @@ def exchange_token(code: str = Query(...), user: dict = Depends(get_current_user
         print(f"Error exchanging token: {e}")
         raise HTTPException(status_code=400, detail="Failed to exchange token with Strava.")
 
+@app.get("/strava/status", dependencies=[Depends(get_current_user)])
+def get_strava_connection_status(user: dict = Depends(get_current_user)):
+    """
+    Checks if the current user has connected their Strava account.
+    """
+    user_uid = user.get("uid")
+    user_doc = firestore_db.collection('users').document(user_uid).get()
+
+    is_connected = (user_doc.exists and
+                    'strava_tokens' in user_doc.to_dict() and
+                    user_doc.to_dict().get('strava_tokens', {}).get('access_token') is not None)
+
+    return {"is_connected": is_connected}
+
 @app.get("/activities", dependencies=[Depends(get_current_user)])
 def list_activities(user: dict = Depends(get_current_user)):
     """
@@ -108,19 +122,21 @@ def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_us
     Generates a workout suggestion based on user's goals and recent activities.
     """
     user_uid = user.get("uid")
+    activities = []
+    is_strava_connected = False
+
     user_doc = firestore_db.collection('users').document(user_uid).get()
-    if not user_doc.exists or 'strava_tokens' not in user_doc.to_dict():
-        raise HTTPException(status_code=401, detail="Strava account not connected.")
+    if user_doc.exists and 'strava_tokens' in user_doc.to_dict():
+        access_token = user_doc.to_dict()['strava_tokens'].get('access_token')
+        if access_token:
+            is_strava_connected = True
+            try:
+                activities = strava_client.get_activities(access_token=access_token, per_page=NBR_OF_ACTIVITIES)
+            except Exception as e:
+                print(f"Error fetching activities for AI suggestion: {e}")
+                activities = []
 
-    access_token = user_doc.to_dict()['strava_tokens'].get('access_token')
-
-    try:
-        activities = strava_client.get_activities(access_token=access_token, per_page=NBR_OF_ACTIVITIES)
-    except Exception as e:
-        print(f"Error fetching activities for AI suggestion: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch activities from Strava.")
-
-    prompt = f"""
+    prompt = textwrap.dedent(f"""
         You are VersionUp, an expert AI Workout Coach.
         You specialize in designing personalized, professional workout plans that are structured, motivating, and easy to follow.
         Your goal is to help the user improve fitness, strength, endurance, and mental stability while maintaining safety and balance.
@@ -223,12 +239,14 @@ def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_us
         **Time Available:** {request.time} minutes
         **Available Equipment:** {request.equipment or "Bodyweight only"}
 
-        **User's Recent Activities (for context):**
-        {activities if activities else "No recent activities found."}
+        **User's Strava Connection Status:** {'Connected' if is_strava_connected else 'Not Connected'}
+        **User's Recent Activities (for context):** {'\n'.join(map(str, activities)) if activities else "No recent activities found."}
 
         Based on all this information, please provide a detailed workout suggestion for today.
         The suggestion should be structured and easy to follow.
-    """
+
+        If the user's Strava is not connected, your primary goal is to provide a great general workout based on their stated goal, but also gently encourage them to connect their Strava account for a more personalized experience in the future. Mention this in the "Tips or Guidance" section.
+    """)
 
     try:
         response = client.chat_completion(
