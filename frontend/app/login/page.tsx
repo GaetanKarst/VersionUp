@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -17,7 +17,17 @@ export default function LoginPage() {
     setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/'); 
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    try {
+      await signInWithPopup(auth, googleProvider);
+      router.push('/');
     } catch (err: any) {
       setError(err.message);
     }
@@ -69,6 +79,12 @@ export default function LoginPage() {
             </Link>
           </div>
         </form>
+        <button
+          onClick={handleGoogleSignIn}
+          className="w-full bg-white text-black font-semibold py-2 px-4 border border-gray-400 rounded shadow hover:bg-gray-100"
+        >
+          Sign in with Google
+        </button>
       </div>
     </main>
   );
