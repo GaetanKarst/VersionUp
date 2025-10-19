@@ -27,8 +27,8 @@ export default function HomePage() {
       return;
     }
     try {
-      // TODO: Replace with production API endpoint
-      const response = await axios.get('http://localhost:8000/');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await axios.get(`${apiUrl}/`);
       if (response.data.authorization_url) {
         // Strava authentication redirection
         window.location.href = response.data.authorization_url;
