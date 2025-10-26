@@ -29,8 +29,8 @@ export default function StravaRedirectPage() {
           try {
             const idToken = await user.getIdToken();
 
-            // TODO: Replace with production API endpoint URL when deploying
-            const response = await fetch(`http://localhost:8000/exchange_token?code=${code}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const response = await fetch(`${apiUrl}/exchange_token?code=${code}`, {
               headers: {
                 'Authorization': `Bearer ${idToken}`
               }

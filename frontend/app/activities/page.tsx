@@ -15,8 +15,8 @@ export default function ActivitiesPage() {
       if (user) {
         try {
           const token = await user.getIdToken();
-          // TODO: Replace with production API endpoint
-          const response = await axios.get<StravaActivity[]>('http://localhost:8000/activities', {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+          const response = await axios.get<StravaActivity[]>(`${apiUrl}/activities`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },

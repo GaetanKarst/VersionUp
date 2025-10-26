@@ -35,8 +35,8 @@ export default function SuggestWorkoutPage() {
 
     try {
       const token = await user.getIdToken();
-      // TODO: Replace with production API endpoint URL when deploying
-      const response = await fetch('http://localhost:8000/suggest_workout', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/suggest_workout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,8 +65,8 @@ export default function SuggestWorkoutPage() {
       if (currentUser) {
         try {
           const token = await currentUser.getIdToken();
-          // TODO: Replace with your production API endpoint URL when deploying
-          const response = await fetch('http://localhost:8000/strava/status', {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+          const response = await fetch(`${apiUrl}/strava/status`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
