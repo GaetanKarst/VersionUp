@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import strava_client
 from ai_client import client
 from auth import get_current_user
-from firebase_setup import db as firestore_db # This will trigger initialization
+from firebase_setup import db as firestore_db
 
 load_dotenv()
 
@@ -138,6 +138,8 @@ def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_us
                 print(f"Error fetching activities for AI suggestion: {e}")
                 activities = []
 
+    activities_str = '\n'.join(map(str, activities)) if activities else "No recent activities found."
+
     prompt = textwrap.dedent(f"""
         You are VersionUp, an expert AI Workout Coach.
         You specialize in designing personalized, professional workout plans that are structured, motivating, and easy to follow.
@@ -242,7 +244,7 @@ def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_us
         **Available Equipment:** {request.equipment or "Bodyweight only"}
 
         **User's Strava Connection Status:** {'Connected' if is_strava_connected else 'Not Connected'}
-        **User's Recent Activities (for context):** {'\n'.join(map(str, activities)) if activities else "No recent activities found."}
+        **User's Recent Activities (for context):** {activities_str}
 
         Based on all this information, please provide a detailed workout suggestion for today.
         The suggestion should be structured and easy to follow.
