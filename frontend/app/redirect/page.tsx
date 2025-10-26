@@ -1,11 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 
-export default function StravaRedirectPage() {
+function LoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center text-center">
+      <h1 className="text-2xl font-semibold mb-4">Loading...</h1>
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
+  );
+}
+
+function RedirectHandler() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState('Authenticating with Strava...');
@@ -67,5 +76,13 @@ export default function StravaRedirectPage() {
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
       )}
     </div>
+  );
+}
+
+export default function StravaRedirectPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <RedirectHandler />
+    </Suspense>
   );
 }
