@@ -27,13 +27,9 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",
     "https://versionsup.com",
+    "https://www.versionsup.com",
     "https://versionsup.vercel.app",
 ]
-
-# Add Vercel deployment URL if available
-vercel_url = os.getenv("VERCEL_URL")
-if vercel_url:
-    origins.append(f"https://{vercel_url}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,7 +37,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    allow_origin_regex="https://.*\.vercel\.app"
 )
 
 # --- Pydantic Models ---
