@@ -6,7 +6,7 @@ import Navbar from "./components/Navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "VersionUp - AI Workout Trainer",
+  title: "VersionsUp - AI Workout Trainer",
   description: "Version yourself up with your AI-powered workout coach!",
 };
 

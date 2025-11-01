@@ -1,8 +1,8 @@
-# VersionUp - AI Workout Coach
+# VersionsUp - AI Workout Coach
 
 🚧 Work in Progress 🔧
 
-VersionUp is a web application designed to act as a virtual workout coach. It synchronizes with a user's Strava account to analyze their activity data. Leveraging AI, it provides personalized feedback and recommendations for future workouts based on the user's goals.
+VersionsUp is a web application designed to act as a virtual workout coach. It synchronizes with a user's Strava account to analyze their activity data. Leveraging AI, it provides personalized feedback and recommendations for future workouts based on the user's goals.
 
 This project is mobile-first, ensuring a seamless experience on any device.
 
