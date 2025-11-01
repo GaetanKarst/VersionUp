@@ -15,7 +15,7 @@ export default function HomePage() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-    // Cleanup subscription on unmount
+
     return () => unsubscribe();
   }, []);
 

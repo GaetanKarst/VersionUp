@@ -18,7 +18,7 @@ STRAVA_REDIRECT_URI = os.getenv("STRAVA_REDIRECT_URI")
 NBR_OF_ACTIVITIES = 5
 
 app = FastAPI(
-    title="VersionUp - AI Workout Trainer API",
+    title="VersionsUp - AI Workout Trainer API",
     description="API for fetching sport activity data and providing AI-powered workout suggestions.",
     version="1.0.0",
 )
@@ -28,7 +28,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://versionup.com"
+        "https://versionsup.com"
     ],
     allow_credentials=True,
     allow_methods=["*"],
