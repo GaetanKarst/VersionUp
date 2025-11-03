@@ -8,6 +8,7 @@ import strava_client
 from ai_client import client
 from auth import get_current_user
 from firebase_setup import db as firestore_db
+from fastapi import Request
 
 load_dotenv()
 
@@ -40,6 +41,13 @@ app.add_middleware(
     
 )
 
+# Temporary for debugging
+@app.middleware("http")
+async def log_origin(request: Request, call_next):
+    print("Origin header:", request.headers.get("origin"))
+    response = await call_next(request)
+    return response
+
 # --- Pydantic Models ---
 class WorkoutRequest(BaseModel):
     goal: str = Field(..., example="Build Endurance")
@@ -48,14 +56,6 @@ class WorkoutRequest(BaseModel):
 
 
 # --- API Endpoints ---
-
-# Temporary for debugging
-@app.middleware("http")
-async def log_origin(request: Request, call_next):
-    print("Origin header:", request.headers.get("origin"))
-    response = await call_next(request)
-    return response
-
 @app.get("/")
 def get_strava_auth_url():
     """
