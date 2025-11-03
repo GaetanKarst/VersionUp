@@ -49,6 +49,13 @@ class WorkoutRequest(BaseModel):
 
 # --- API Endpoints ---
 
+# Temporary for debugging
+@app.middleware("http")
+async def log_origin(request: Request, call_next):
+    print("Origin header:", request.headers.get("origin"))
+    response = await call_next(request)
+    return response
+
 @app.get("/")
 def get_strava_auth_url():
     """
