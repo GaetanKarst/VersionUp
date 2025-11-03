@@ -30,26 +30,16 @@ origins = [
     "https://versionsup.com",
     "https://www.versionsup.com",
     "https://versionsup.vercel.app",
-    "https://www.versionsup.vercel.app",
-    "https://www.strava.com",
-    "https://versionup-api-195732093685.asia-northeast1.run.app"
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    # TODO: Handle CORS origin issue correctly
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["Authorization", "Content-Type", "*"],
-    
+    allow_headers=["Authorization", "Content-Type"],
 )
-
-# Temporary for debugging
-@app.middleware("http")
-async def log_origin(request: Request, call_next):
-    print("Origin header:", request.headers.get("origin"))
-    response = await call_next(request)
-    return response
 
 # --- Pydantic Models ---
 class WorkoutRequest(BaseModel):
