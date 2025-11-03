@@ -36,7 +36,7 @@ app.add_middleware(
     CORSMiddleware,
     # TODO: Handle CORS origin issue correctly
     allow_origins=["*"],
-    allow_credentials=True,
+    # allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["Authorization", "Content-Type"],
 )
