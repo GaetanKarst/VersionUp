@@ -30,6 +30,7 @@ origins = [
     "https://versionsup.com",
     "https://www.versionsup.com",
     "https://versionsup.vercel.app",
+    "https://www.strava.com"
 ]
 
 app.add_middleware(
