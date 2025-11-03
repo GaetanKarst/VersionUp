@@ -25,21 +25,30 @@ app = FastAPI(
 )
 
 # --- CORS Middleware ---
-origins = [
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
     "http://localhost:3000",
     "https://versionsup.com",
     "https://www.versionsup.com",
     "https://versionsup.vercel.app",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    # TODO: Handle CORS origin issue correctly
-    allow_origins=["*"],
-    # allow_credentials=True,
+    "https://www.versionsup.vercel.app",
+    "https://www.strava.com",
+    "https://versionup-api-195732093685.asia-northeast1.run.app"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["Authorization", "Content-Type"],
+    
 )
+
+# Temporary for debugging
+@app.middleware("http")
+async def log_origin(request: Request, call_next):
+    print("Origin header:", request.headers.get("origin"))
+    response = await call_next(request)
+    return response
 
 # --- Pydantic Models ---
 class WorkoutRequest(BaseModel):
