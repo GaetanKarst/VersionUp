@@ -10,10 +10,10 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedWorkouts, setSavedWorkouts] = useState<any[]>([]);
+  const [latestWorkout, setLatestWorkout] = useState<Workout | null>(null);
   const [isWorkoutsLoading, setIsWorkoutsLoading] = useState(false);
   const [workoutsError, setWorkoutsError] = useState<string | null>(null);
-  const [selectedWorkout, setSelectedWorkout] = useState<any | null>(null);
+  const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function HomePage() {
         try {
           const token = await currentUser.getIdToken();
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-          const response = await fetch(`${apiUrl}/get_workouts`, {
+          const response = await fetch(`${apiUrl}/get_latest_workout`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -38,14 +38,14 @@ export default function HomePage() {
           }
 
           const data = await response.json();
-          setSavedWorkouts(data);
+          setLatestWorkout(data.length > 0 ? data[0] : null);
         } catch (err: any) {
           setWorkoutsError(err.message);
         } finally {
           setIsWorkoutsLoading(false);
         }
       } else {
-        setSavedWorkouts([]); // Clear workouts if user logs out
+        setLatestWorkout(null);
       }
     });
 
@@ -74,7 +74,7 @@ export default function HomePage() {
     }
   };
 
-  const handleViewWorkout = (workout: any) => {
+  const handleViewWorkout = (workout: Workout) => {
     setSelectedWorkout(workout);
     setIsModalOpen(true);
   };
@@ -134,26 +134,26 @@ export default function HomePage() {
         {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
         {user && (
           <div className="mt-10">
-            <h2 className="text-2xl font-bold text-white mb-4">Your Saved Workouts</h2>
-            {isWorkoutsLoading && <p className="text-center text-slate-400">Loading your workouts...</p>}
+            <h2 className="text-2xl font-bold text-white mb-4">Your Latest Workout</h2>
+            {isWorkoutsLoading && <p className="text-center text-slate-400">Loading your workout...</p>}
             {workoutsError && <p className="text-center text-red-500">{workoutsError}</p>}
-            {savedWorkouts.length === 0 && !isWorkoutsLoading && !workoutsError && (
+            {!latestWorkout && !isWorkoutsLoading && !workoutsError && (
               <p className="text-center text-slate-400">No saved workouts yet. Go to <Link href="/suggest" className="text-blue-400 hover:underline">Suggest Workout</Link> to create one!</p>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {savedWorkouts.map((workout) => (
-                <div key={workout.id} className="bg-slate-800 p-6 rounded-lg shadow-lg">
+              {latestWorkout && (
+                <div key={latestWorkout.id} className="bg-slate-800 p-6 rounded-lg shadow-lg">
                   <h3 className="text-xl font-semibold text-white mb-2">Workout Plan</h3>
-                  <p className="text-slate-300 whitespace-pre-wrap text-sm">{workout.suggestion.substring(0, 200)}...</p> {/* Display a snippet */}
-                  <p className="text-slate-500 text-xs mt-2">Saved on: {new Date(workout.created_at._seconds * 1000).toLocaleDateString()}</p>
+                  <p className="text-slate-300 whitespace-pre-wrap text-sm">{latestWorkout.suggestion.substring(0, 200)}...</p> {/* Display a snippet */}
+                  <p className="text-slate-500 text-xs mt-2">Saved on: {new Date(latestWorkout.created_at._seconds * 1000).toLocaleDateString()}</p>
                   <button
-                    onClick={() => handleViewWorkout(workout)}
+                    onClick={() => handleViewWorkout(latestWorkout)}
                     className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors"
                   >
                     View Full Workout
                   </button>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}

@@ -6,3 +6,11 @@ interface StravaActivity {
   type: string;
   start_date_local: string;
 }
+
+interface Workout {
+  id: string;
+  suggestion: string;
+  created_at: {
+    _seconds: number;
+  };
+}

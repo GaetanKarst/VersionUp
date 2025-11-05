@@ -342,6 +342,7 @@ def get_workouts(user: dict = Depends(get_current_user)):
     try:
         workouts_ref = firestore_db.collection(
             'users').document(user_uid).collection('workouts').stream()
+        
         workouts = []
         for workout in workouts_ref:
             workout_data = workout.to_dict()
@@ -355,4 +356,31 @@ def get_workouts(user: dict = Depends(get_current_user)):
         print(f"Error fetching workouts: {e}")
         raise HTTPException(
             status_code=500, detail="Failed to fetch workouts.")
+
+
+@app.get("/get_latest_workout", dependencies=[Depends(get_current_user)])
+def get_latest_workout(user: dict = Depends(get_current_user)):
+    """
+    Retrieves the latest saved workout for the current user.
+    """
+    user_uid = user.get("uid")
+    if not user_uid:
+        raise HTTPException(status_code=403, detail="User not authenticated.")
+
+    try:
+        workouts_ref = firestore_db.collection(
+            'users').document(user_uid).collection('workouts').order_by(
+                'created_at', direction='DESCENDING').limit(1).stream()
+        
+        workouts = []
+        for workout in workouts_ref:
+            workout_data = workout.to_dict()
+            workout_data['id'] = workout.id
+            workouts.append(workout_data)
+
+        return workouts
+    except Exception as e:
+        print(f"Error fetching latest workout: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch latest workout.")
         
