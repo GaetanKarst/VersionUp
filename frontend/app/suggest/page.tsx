@@ -59,6 +59,49 @@ export default function SuggestWorkoutPage() {
     }
   };
 
+  const handleSaveWorkout = async () => {
+    if (!user) {
+      setError('You must be logged in to save a workout.');
+      return;
+    }
+
+    if (window.confirm('Do you want to save this workout?')) {
+      setIsLoading(true);
+      setError('');
+      try {
+        const token = await user.getIdToken();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const response = await fetch(`${apiUrl}/save_workout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ suggestion: suggestion }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.detail || 'Failed to save workout.');
+        }
+
+        alert('Workout saved successfully!');
+        setSuggestion('');
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleGiveFeedback = () => {
+    const feedback = prompt('What would you like to modify about this suggestion?');
+    if (feedback) {
+      alert(`Thank you for your feedback: "${feedback}". We'll use this to improve!`);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -163,6 +206,20 @@ export default function SuggestWorkoutPage() {
           <div className="bg-slate-800 p-6 rounded-lg mt-8 whitespace-pre-wrap font-mono">
             <h2 className="text-2xl font-bold mb-4">Your Personalized Workout</h2>
             <p>{suggestion}</p>
+            <div className="flex justify-center space-x-4 mt-6">
+              <button
+                onClick={handleSaveWorkout}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center"
+              >
+                👍 Save Workout
+              </button>
+              <button
+                onClick={handleGiveFeedback}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center"
+              >
+                👎 Modify Suggestion
+              </button>
+            </div>
           </div>
         )}
       </div>

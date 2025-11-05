@@ -10,10 +10,43 @@ export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedWorkouts, setSavedWorkouts] = useState<any[]>([]);
+  const [isWorkoutsLoading, setIsWorkoutsLoading] = useState(false);
+  const [workoutsError, setWorkoutsError] = useState<string | null>(null);
+  const [selectedWorkout, setSelectedWorkout] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        // Fetch saved workouts
+        setIsWorkoutsLoading(true);
+        setWorkoutsError(null);
+        try {
+          const token = await currentUser.getIdToken();
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+          const response = await fetch(`${apiUrl}/get_workouts`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to fetch saved workouts.');
+          }
+
+          const data = await response.json();
+          setSavedWorkouts(data);
+        } catch (err: any) {
+          setWorkoutsError(err.message);
+        } finally {
+          setIsWorkoutsLoading(false);
+        }
+      } else {
+        setSavedWorkouts([]); // Clear workouts if user logs out
+      }
     });
 
     return () => unsubscribe();
@@ -39,6 +72,16 @@ export default function HomePage() {
       setError(err instanceof Error ? err.message : 'An unknown error occurred.');
       setIsLoading(false);
     }
+  };
+
+  const handleViewWorkout = (workout: any) => {
+    setSelectedWorkout(workout);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedWorkout(null);
   };
 
   return (
@@ -89,7 +132,46 @@ export default function HomePage() {
           )}
         </div>
         {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+        {user && (
+          <div className="mt-10">
+            <h2 className="text-2xl font-bold text-white mb-4">Your Saved Workouts</h2>
+            {isWorkoutsLoading && <p className="text-center text-slate-400">Loading your workouts...</p>}
+            {workoutsError && <p className="text-center text-red-500">{workoutsError}</p>}
+            {savedWorkouts.length === 0 && !isWorkoutsLoading && !workoutsError && (
+              <p className="text-center text-slate-400">No saved workouts yet. Go to <Link href="/suggest" className="text-blue-400 hover:underline">Suggest Workout</Link> to create one!</p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {savedWorkouts.map((workout) => (
+                <div key={workout.id} className="bg-slate-800 p-6 rounded-lg shadow-lg">
+                  <h3 className="text-xl font-semibold text-white mb-2">Workout Plan</h3>
+                  <p className="text-slate-300 whitespace-pre-wrap text-sm">{workout.suggestion.substring(0, 200)}...</p> {/* Display a snippet */}
+                  <p className="text-slate-500 text-xs mt-2">Saved on: {new Date(workout.created_at._seconds * 1000).toLocaleDateString()}</p>
+                  <button
+                    onClick={() => handleViewWorkout(workout)}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors"
+                  >
+                    View Full Workout
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+      {isModalOpen && selectedWorkout && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-slate-800 p-8 rounded-lg shadow-lg max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Full Workout Plan</h2>
+            <p className="text-slate-300 whitespace-pre-wrap text-sm">{selectedWorkout.suggestion}</p>
+            <button
+              onClick={closeModal}
+              className="mt-6 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
