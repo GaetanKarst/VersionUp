@@ -6,16 +6,16 @@ frontend/dist/
 npm-debug.log*
 pnpm-debug.log*
 
-backend/venv/
+backend/app/venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.egg-info/
 *.egg
-backend/firebase-service-account.json
+backend/app/firebase-service-account.json
 *.pytest_cache/
-backend/.env
+backend/app/.env
 
 .env
 *.env.local
