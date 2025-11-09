@@ -15,8 +15,8 @@ The primary goal of this project is to serve as a practical learning experience 
 <p align="center"><img src="./assets/login_screen.png" alt="Login Screen" width="700"/></p>
 <p align="center"><img src="./assets/registration_screen.png" alt="Registration Screen" width="700"/></p>
 <p align="center"><img src="./assets/connection-screen.png" alt="Connection Screen" width="700"/></p>
-<p align="center"><img src="./assets/activity-screen.png" alt="Activity Screen" width="700"/></p>
-<p align="center"><img src="./assets/suggestion-screen.png" alt="Suggestion Screen" width="700"/></p>
+<p align="center"><img src="./assets/activity_screen.png" alt="Activity Screen" width="700"/></p>
+<p align="center"><img src="./assets/suggestion_screen.png" alt="Suggestion Screen" width="700"/></p>
 <p align="center"><img src="./assets/suggestion_1.png" alt="Workout Suggestion 1" width="700"/></p>
 <p align="center"><img src="./assets/suggestion_2.png" alt="Workout Suggestion 2" width="700"/></p>
 <p align="center"><img src="./assets/connection_screen_empty.png" alt="Connection Screen Empty" width="700"/></p>
