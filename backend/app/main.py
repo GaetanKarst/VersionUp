@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
-from . import strava_client
-from .ai_client import client
-from .auth import get_current_user
-from .firebase_setup import db as firestore_db
+from app import strava_client
+from app.ai_client import client
+from app.auth import get_current_user
+from app.firebase_setup import db as firestore_db
 from fastapi import Request
 
 load_dotenv()

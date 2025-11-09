@@ -10,7 +10,7 @@ try:
             print("Firebase Admin SDK initialized in PRODUCTION mode.")
         else:
             # Local development
-            SERVICE_ACCOUNT_KEY_PATH = "firebase-service-account.json"
+            SERVICE_ACCOUNT_KEY_PATH = os.path.join(os.path.dirname(__file__), "firebase-service-account.json")
             cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
             firebase_admin.initialize_app(cred)
             print("Firebase Admin SDK initialized in LOCAL mode.")
