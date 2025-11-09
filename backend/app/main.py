@@ -1,10 +1,14 @@
 import os
+import sys
 import textwrap
 from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from app import strava_client
 from app.ai_client import client
 from app.auth import get_current_user
