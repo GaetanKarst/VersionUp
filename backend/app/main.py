@@ -1,16 +1,15 @@
 import os
-import sys
+
 import textwrap
 from datetime import datetime
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Query, Depends, APIRouter
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from app import strava_client
 from app.ai_client import client
 from app.auth import get_current_user
 from app.firebase_setup import db as firestore_db
-from fastapi import Request
 
 load_dotenv()
 
@@ -18,13 +17,16 @@ STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REDIRECT_URI = os.getenv("STRAVA_REDIRECT_URI")
 
-NBR_OF_ACTIVITIES = 5
+NBR_OF_ACTIVITIES = 15
 
+api_router = APIRouter(prefix="/api/v1")
 app = FastAPI(
     title="VersionsUp - AI Workout Trainer API",
     description="API for fetching sport activity data and providing AI-powered workout suggestions.",
     version="1.0.0",
 )
+
+
 
 # --- CORS Middleware ---
 
@@ -53,7 +55,12 @@ class WorkoutRequest(BaseModel):
 
 
 # --- API Endpoints ---
-@app.get("/")
+@api_router.get("/")
+def read_root():
+    return {"message": "VersionsUp API v1"}
+
+
+@api_router.get("/strava/auth_url")
 def get_strava_auth_url():
     """
     Provides the URL for Strava OAuth authentication.
@@ -69,7 +76,7 @@ def get_strava_auth_url():
     return {"authorization_url": authorization_url}
 
 
-@app.get("/exchange_token")
+@api_router.get("/strava/exchange_token")
 def exchange_token(code: str = Query(...), user: dict = Depends(get_current_user)):
     """
     Exchanges the authorization 'code' from Strava for an access token and refresh token.
@@ -86,7 +93,6 @@ def exchange_token(code: str = Query(...), user: dict = Depends(get_current_user
             client_secret=STRAVA_CLIENT_SECRET,
             code=code
         )
-        # Store tokens in Firestore, linked to the user's UID
         user_doc_ref = firestore_db.collection('users').document(user_uid)
         user_doc_ref.set({'strava_tokens': token_data}, merge=True)
 
@@ -97,7 +103,7 @@ def exchange_token(code: str = Query(...), user: dict = Depends(get_current_user
             status_code=400, detail="Failed to exchange token with Strava.")
 
 
-@app.get("/strava/status", dependencies=[Depends(get_current_user)])
+@api_router.get("/strava/status", dependencies=[Depends(get_current_user)])
 def get_strava_connection_status(user: dict = Depends(get_current_user)):
     """
     Checks if the current user has connected their Strava account.
@@ -112,18 +118,20 @@ def get_strava_connection_status(user: dict = Depends(get_current_user)):
     return {"is_connected": is_connected}
 
 
-@app.get("/activities", dependencies=[Depends(get_current_user)])
+@api_router.get("/strava/activities", dependencies=[Depends(get_current_user)])
 def list_activities(user: dict = Depends(get_current_user)):
     """
     Fetches the last 5 activities.
     """
     user_uid = user.get("uid")
     user_doc = firestore_db.collection('users').document(user_uid).get()
+    
     if not user_doc.exists or 'strava_tokens' not in user_doc.to_dict():
         raise HTTPException(
             status_code=401, detail="Strava account not connected.")
 
     access_token = user_doc.to_dict()['strava_tokens'].get('access_token')
+    
     if not access_token:
         raise HTTPException(status_code=401, detail="Invalid Strava token.")
 
@@ -137,7 +145,7 @@ def list_activities(user: dict = Depends(get_current_user)):
             status_code=500, detail="Failed to fetch activities from Strava.")
 
 
-@app.post("/suggest_workout")
+@api_router.post("/ai/suggest_workout")
 def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_user)):
     """
     Generates a workout suggestion based on user's goals and recent activities.
@@ -298,12 +306,13 @@ class WorkoutToSave(BaseModel):
     suggestion: str
 
 
-@app.post("/save_workout", dependencies=[Depends(get_current_user)])
+@api_router.post("/save_workout", dependencies=[Depends(get_current_user)])
 def save_workout(workout: WorkoutToSave, user: dict = Depends(get_current_user)):
     """
     Saves a workout suggestion for the current user.
     """
     user_uid = user.get("uid")
+    
     if not user_uid:
         raise HTTPException(status_code=403, detail="User not authenticated.")
 
@@ -320,12 +329,13 @@ def save_workout(workout: WorkoutToSave, user: dict = Depends(get_current_user))
         raise HTTPException(status_code=500, detail="Failed to save workout.")
 
 
-@app.get("/get_workouts", dependencies=[Depends(get_current_user)])
+@api_router.get("/get_workouts", dependencies=[Depends(get_current_user)])
 def get_workouts(user: dict = Depends(get_current_user)):
     """
     Retrieves all saved workouts for the current user.
     """
     user_uid = user.get("uid")
+    
     if not user_uid:
         raise HTTPException(status_code=403, detail="User not authenticated.")
 
@@ -348,12 +358,13 @@ def get_workouts(user: dict = Depends(get_current_user)):
             status_code=500, detail="Failed to fetch workouts.")
 
 
-@app.get("/get_latest_workout", dependencies=[Depends(get_current_user)])
+@api_router.get("/get_latest_workout", dependencies=[Depends(get_current_user)])
 def get_latest_workout(user: dict = Depends(get_current_user)):
     """
     Retrieves the latest saved workout for the current user.
     """
     user_uid = user.get("uid")
+    
     if not user_uid:
         raise HTTPException(status_code=403, detail="User not authenticated.")
 
@@ -374,3 +385,5 @@ def get_latest_workout(user: dict = Depends(get_current_user)):
         raise HTTPException(
             status_code=500, detail="Failed to fetch latest workout.")
         
+        
+app.include_router(api_router)

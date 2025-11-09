@@ -27,7 +27,7 @@ export default function HomePage() {
         try {
           const token = await currentUser.getIdToken();
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-          const response = await fetch(`${apiUrl}/get_latest_workout`, {
+          const response = await fetch(`${apiUrl}/api/v1/get_latest_workout`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },
@@ -63,9 +63,9 @@ export default function HomePage() {
     }
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await axios.get(`${apiUrl}/`);
+      const response = await axios.get(`${apiUrl}/api/v1/strava/auth_url`);
+
       if (response.data.authorization_url) {
-        // Strava authentication redirection
         window.location.href = response.data.authorization_url;
       } else {
         throw new Error('Authorization URL not found in response.');

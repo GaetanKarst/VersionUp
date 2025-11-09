@@ -36,7 +36,7 @@ export default function SuggestWorkoutPage() {
     try {
       const token = await user.getIdToken();
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/suggest_workout`, {
+      const response = await fetch(`${apiUrl}/api/v1/ai/suggest_workout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export default function SuggestWorkoutPage() {
       try {
         const token = await user.getIdToken();
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-        const response = await fetch(`${apiUrl}/save_workout`, {
+        const response = await fetch(`${apiUrl}/api/v1/save_workout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ export default function SuggestWorkoutPage() {
         try {
           const token = await currentUser.getIdToken();
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-          const response = await fetch(`${apiUrl}/strava/status`, {
+          const response = await fetch(`${apiUrl}/api/v1/strava/status`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             },

@@ -26,13 +26,25 @@ def mock_shared_dependencies():
         
         yield db_mock
 
+@pytest.fixture(scope='session', autouse=True)
+def mock_ai_chat_completion():
+    """
+    Patches app.ai_client.client.chat_completion for the entire test session.
+    """
+    with patch('app.ai_client.client.chat_completion') as mock_chat_completion:
+        mock_chat_completion.return_value.choices[0].message.content = "Your personalized workout is..."
+        yield mock_chat_completion
+
 @pytest.fixture(scope="module")
 def client():
     """
     Provides a TestClient for the FastAPI app.
     The app is imported here to ensure it's done after the patches are active.
     """
-    from app.main import app
+    #TODO: Find a better solution to get api_router
+    from app.main import app, api_router 
+    if api_router not in app.router.routes:
+        app.include_router(api_router)
     with TestClient(app) as test_client:
         yield test_client
 

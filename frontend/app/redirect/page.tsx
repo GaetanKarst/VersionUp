@@ -39,7 +39,7 @@ function RedirectHandler() {
             const idToken = await user.getIdToken();
 
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const response = await fetch(`${apiUrl}/exchange_token?code=${code}`, {
+            const response = await fetch(`${apiUrl}/api/v1/strava/exchange_token?code=${code}`, {
               headers: {
                 'Authorization': `Bearer ${idToken}`
               }

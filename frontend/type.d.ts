@@ -12,3 +12,13 @@ interface Workout {
   suggestion: string;
   created_at: string;
 }
+
+interface WorkoutRequest {
+  goal: string;
+  equipment: string;
+  time: number;
+}
+
+interface WorkoutToSave {
+  suggestion: string;
+}
