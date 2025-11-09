@@ -5,6 +5,7 @@ import axios from 'axios';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import Link from 'next/link';
+import { formatRelativeTime } from '@/lib/dateUtils';
 
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -38,6 +39,7 @@ export default function HomePage() {
           }
 
           const data = await response.json();
+          console.log("hello: ", data);
           setLatestWorkout(data.length > 0 ? data[0] : null);
         } catch (err: any) {
           setWorkoutsError(err.message);
@@ -145,7 +147,7 @@ export default function HomePage() {
                 <div key={latestWorkout.id} className="bg-slate-800 p-6 rounded-lg shadow-lg">
                   <h3 className="text-xl font-semibold text-white mb-2">Workout Plan</h3>
                   <p className="text-slate-300 whitespace-pre-wrap text-sm">{latestWorkout.suggestion.substring(0, 200)}...</p> {/* Display a snippet */}
-                  <p className="text-slate-500 text-xs mt-2">Saved on: {new Date(latestWorkout.created_at._seconds * 1000).toLocaleDateString()}</p>
+                  <p className="text-slate-500 text-xs mt-2">Saved: {formatRelativeTime(latestWorkout.created_at)}</p>
                   <button
                     onClick={() => handleViewWorkout(latestWorkout)}
                     className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors"

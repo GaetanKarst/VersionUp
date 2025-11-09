@@ -10,7 +10,5 @@ interface StravaActivity {
 interface Workout {
   id: string;
   suggestion: string;
-  created_at: {
-    _seconds: number;
-  };
+  created_at: number;
 }
