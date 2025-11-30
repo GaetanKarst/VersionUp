@@ -8,6 +8,7 @@ export default function SuggestWorkoutPage() {
   const [goal, setGoal] = useState('Build Endurance');
   const [user, setUser] = useState<User | null>(null);
   const [equipment, setEquipment] = useState('');
+  const [requirements, setRequirements] = useState('');
   const [time, setTime] = useState(45);
   const [suggestion, setSuggestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -42,7 +43,7 @@ export default function SuggestWorkoutPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ goal, equipment, time }),
+        body: JSON.stringify({ goal, equipment, time, requirements }),
       });
 
       if (!response.ok) {
@@ -184,6 +185,20 @@ export default function SuggestWorkoutPage() {
                 id="time"
                 value={time}
                 onChange={(e) => setTime(parseInt(e.target.value, 10))}
+                className="w-full bg-slate-800 border border-slate-700 rounded-md p-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="requirements" className="block text-sm font-medium text-slate-300 mb-2">
+                Specific requirements
+              </label>
+              <input
+                type="text"
+                id="requirements"
+                value={requirements}
+                onChange={(e) => setRequirements(e.target.value)}
+                placeholder="e.g., recent injury, high blood pressure, etc."
                 className="w-full bg-slate-800 border border-slate-700 rounded-md p-3 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>

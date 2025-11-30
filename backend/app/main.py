@@ -52,6 +52,8 @@ class WorkoutRequest(BaseModel):
     goal: str = Field(..., example="Build Endurance")
     equipment: str = Field("", example="Dumbbells, resistance bands")
     time: int = Field(..., gt=0, example=45)
+    requirements: str = Field(
+        "", example="recent injury, high blood pressure, etc.")
 
 
 # --- API Endpoints ---
@@ -274,6 +276,7 @@ def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_us
         **User's Goal:** {request.goal}
         **Time Available:** {request.time} minutes per workout
         **Available Equipment:** {request.equipment or "Bodyweight only"}
+        **Specific requirements:** {request.requirements or "no specific requirements"}
 
         **User's Strava Connection Status:** {'Connected' if is_strava_connected else 'Not Connected'}
         **User's Recent Activities (for context):** {activities_str}
