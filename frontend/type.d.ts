@@ -22,3 +22,10 @@ interface WorkoutRequest {
 interface WorkoutToSave {
   suggestion: string;
 }
+
+interface UserProfile {
+  height?: number;
+  weight?: number;
+  gender?: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+  workout_level?: 'Beginner' | 'Intermediate' | 'Advanced';
+}

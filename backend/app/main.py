@@ -4,12 +4,14 @@ import textwrap
 from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Depends, APIRouter
-from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from app import strava_client
 from app.ai_client import client
 from app.auth import get_current_user
 from app.firebase_setup import db as firestore_db
+from app.models.user_profile import UserProfile
+from app.models.workout_request import WorkoutRequest
+from app.models.workout_to_save import WorkoutToSave
 
 load_dotenv()
 
@@ -25,8 +27,6 @@ app = FastAPI(
     description="API for fetching sport activity data and providing AI-powered workout suggestions.",
     version="1.0.0",
 )
-
-
 
 # --- CORS Middleware ---
 
@@ -46,15 +46,6 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 
 )
-
-# --- Pydantic Models ---
-class WorkoutRequest(BaseModel):
-    goal: str = Field(..., example="Build Endurance")
-    equipment: str = Field("", example="Dumbbells, resistance bands")
-    time: int = Field(..., gt=0, example=45)
-    requirements: str = Field(
-        "", example="recent injury, high blood pressure, etc.")
-
 
 # --- API Endpoints ---
 @api_router.get("/")
@@ -118,6 +109,41 @@ def get_strava_connection_status(user: dict = Depends(get_current_user)):
                     user_doc.to_dict().get('strava_tokens', {}).get('access_token') is not None)
 
     return {"is_connected": is_connected}
+
+
+@api_router.put("/user/profile", dependencies=[Depends(get_current_user)])
+def update_user_profile(profile: UserProfile, user: dict = Depends(get_current_user)):
+    """
+    Updates the user's profile information.
+    """
+    user_uid = user.get("uid")
+    try:
+        user_doc_ref = firestore_db.collection('users').document(user_uid)
+        profile_data = profile.dict(exclude_unset=True)
+        if not profile_data:
+            raise HTTPException(status_code=400, detail="No profile data provided.")
+        user_doc_ref.set({'profile': profile_data}, merge=True)
+        return {"message": "Profile updated successfully."}
+    except Exception as e:
+        print(f"Error updating profile: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update profile.")
+
+
+@api_router.get("/user/profile", dependencies=[Depends(get_current_user)])
+def get_user_profile(user: dict = Depends(get_current_user)):
+    """
+    Retrieves the user's profile information.
+    """
+    user_uid = user.get("uid")
+    try:
+        user_doc_ref = firestore_db.collection('users').document(user_uid)
+        user_doc = user_doc_ref.get()
+        if user_doc.exists and 'profile' in user_doc.to_dict():
+            return user_doc.to_dict().get('profile')
+        return {}
+    except Exception as e:
+        print(f"Error fetching profile: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch profile.")
 
 
 @api_router.get("/strava/activities", dependencies=[Depends(get_current_user)])
@@ -304,9 +330,6 @@ def suggest_workout(request: WorkoutRequest, user: dict = Depends(get_current_us
         raise HTTPException(
             status_code=500, detail="Failed to generate workout suggestion.")
 
-
-class WorkoutToSave(BaseModel):
-    suggestion: str
 
 
 @api_router.post("/save_workout", dependencies=[Depends(get_current_user)])
