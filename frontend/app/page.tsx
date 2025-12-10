@@ -21,9 +21,9 @@ export default function HomePage() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Fetch saved workouts
         setIsWorkoutsLoading(true);
         setWorkoutsError(null);
+
         try {
           const token = await currentUser.getIdToken();
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -37,10 +37,9 @@ export default function HomePage() {
             const errorData = await response.json();
             throw new Error(errorData.detail || 'Failed to fetch saved workouts.');
           }
-
           const data = await response.json();
-          console.log("hello: ", data);
           setLatestWorkout(data.length > 0 ? data[0] : null);
+          
         } catch (err: any) {
           setWorkoutsError(err.message);
         } finally {
