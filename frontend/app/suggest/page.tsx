@@ -218,10 +218,12 @@ export default function SuggestWorkoutPage() {
         {error && <p className="text-center text-red-500">{error}</p>}
 
         {suggestion && (
-          <div className="bg-slate-800 p-6 rounded-lg mt-8 whitespace-pre-wrap font-mono">
+          <div className="bg-slate-800 p-6 rounded-lg mt-8">
             <h2 className="text-2xl font-bold mb-4">Your Personalized Workout</h2>
-            <p>{suggestion}</p>
-            <div className="flex justify-center space-x-4 mt-6">
+            <div className="whitespace-pre-wrap font-mono max-h-[60vh] overflow-y-auto mb-6 p-4 bg-slate-900 rounded-md">
+              <p>{suggestion}</p>
+            </div>
+            <div className="flex justify-center space-x-4">
               <button
                 onClick={handleSaveWorkout}
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors flex items-center"
