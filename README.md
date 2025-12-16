@@ -1,6 +1,6 @@
 # VersionsUp - AI Workout Coach
 
-🚧 Work in Progress 🔧
+🚧 POC Project 🔧
 
 VersionsUp is a web application designed to act as a virtual workout coach. It synchronizes with a user's Strava account to analyze their activity data. Leveraging AI, it provides personalized feedback and recommendations for future workouts based on the user's goals.
 
