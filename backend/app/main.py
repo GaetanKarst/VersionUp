@@ -5,13 +5,14 @@ from datetime import datetime
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Depends, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from app import strava_client
+from app.clients import strava_client
 from app.ai_client import client
 from app.auth import get_current_user
 from app.firebase_setup import db as firestore_db
 from app.models.user_profile import UserProfile
 from app.models.workout_request import WorkoutRequest
 from app.models.workout_to_save import WorkoutToSave
+from services.strava_service import StravaService
 
 load_dotenv()
 
@@ -47,6 +48,11 @@ app.add_middleware(
 
 )
 
+# --- Dependencies ---
+def get_strava_service():
+    return StravaService(firestore_db)
+
+
 # --- API Endpoints ---
 @api_router.get("/")
 def read_root():
@@ -54,47 +60,22 @@ def read_root():
 
 
 @api_router.get("/strava/auth_url")
-def get_strava_auth_url():
+def get_strava_auth_url(strava_services: StravaService = Depends(get_strava_service)):
     """
     Provides the URL for Strava OAuth authentication.
     """
-    if not all([STRAVA_CLIENT_ID, STRAVA_REDIRECT_URI]):
-        raise HTTPException(
-            status_code=500, detail="Server configuration error: Strava client details not set.")
-
-    authorization_url = strava_client.get_authorization_url(
-        client_id=STRAVA_CLIENT_ID,
-        redirect_uri=STRAVA_REDIRECT_URI
-    )
-    return {"authorization_url": authorization_url}
+    return strava_services.get_auth_url()
 
 
 @api_router.get("/strava/exchange_token")
-def exchange_token(code: str = Query(...), user: dict = Depends(get_current_user)):
+def exchange_token(code: str = Query(...), 
+                   user: dict = Depends(get_current_user), 
+                   strava_service: StravaService = Depends(get_strava_service)):
     """
     Exchanges the authorization 'code' from Strava for an access token and refresh token.
     Tokens are stored in Firestore for the authenticated user.
     """
-    if not all([STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET]):
-        raise HTTPException(
-            status_code=500, detail="Server configuration error: Strava client details not set.")
-
-    user_uid = user.get("uid")
-    try:
-        token_data = strava_client.get_tokens(
-            client_id=STRAVA_CLIENT_ID,
-            client_secret=STRAVA_CLIENT_SECRET,
-            code=code
-        )
-        user_doc_ref = firestore_db.collection('users').document(user_uid)
-        user_doc_ref.set({'strava_tokens': token_data}, merge=True)
-
-        return {"message": "Token exchanged successfully."}
-    except Exception as e:
-        print(f"Error exchanging token: {e}")
-        raise HTTPException(
-            status_code=400, detail="Failed to exchange token with Strava.")
-
+    return strava_service.exchange_token(code, user.get("uid"))
 
 @api_router.get("/strava/status", dependencies=[Depends(get_current_user)])
 def get_strava_connection_status(user: dict = Depends(get_current_user)):
@@ -413,3 +394,4 @@ def get_latest_workout(user: dict = Depends(get_current_user)):
         
         
 app.include_router(api_router)
+
