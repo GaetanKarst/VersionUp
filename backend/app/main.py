@@ -16,11 +16,10 @@ from services.strava_service import StravaService
 
 load_dotenv()
 
+# TODO: remove
 STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 STRAVA_REDIRECT_URI = os.getenv("STRAVA_REDIRECT_URI")
-
-NBR_OF_ACTIVITIES = 15
 
 api_router = APIRouter(prefix="/api/v1")
 app = FastAPI(
@@ -78,19 +77,22 @@ def exchange_token(code: str = Query(...),
     return strava_service.exchange_token(code, user.get("uid"))
 
 @api_router.get("/strava/status", dependencies=[Depends(get_current_user)])
-def get_strava_connection_status(user: dict = Depends(get_current_user)):
+def get_strava_connection_status(user: dict = Depends(get_current_user),
+                                 strava_service: StravaService = Depends(get_strava_service)):
     """
     Checks if the current user has connected their Strava account.
     """
-    user_uid = user.get("uid")
-    user_doc = firestore_db.collection('users').document(user_uid).get()
+    return strava_service.get_strava_connection_status(user.get("uid"))
 
-    is_connected = (user_doc.exists and
-                    'strava_tokens' in user_doc.to_dict() and
-                    user_doc.to_dict().get('strava_tokens', {}).get('access_token') is not None)
 
-    return {"is_connected": is_connected}
-
+@api_router.get("/strava/activities", dependencies=[Depends(get_current_user)])
+def list_activities(user: dict = Depends(get_current_user),
+                    strava_service: StravaService = Depends(get_strava_service,)):
+    """
+    Fetches the last 5 activities.
+    """
+    # TODO: add customizable per_page & pagination
+    return strava_service.get_activities(user.get("uid"))
 
 @api_router.put("/user/profile", dependencies=[Depends(get_current_user)])
 def update_user_profile(profile: UserProfile, user: dict = Depends(get_current_user)):
@@ -125,33 +127,6 @@ def get_user_profile(user: dict = Depends(get_current_user)):
     except Exception as e:
         print(f"Error fetching profile: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch profile.")
-
-
-@api_router.get("/strava/activities", dependencies=[Depends(get_current_user)])
-def list_activities(user: dict = Depends(get_current_user)):
-    """
-    Fetches the last 5 activities.
-    """
-    user_uid = user.get("uid")
-    user_doc = firestore_db.collection('users').document(user_uid).get()
-    
-    if not user_doc.exists or 'strava_tokens' not in user_doc.to_dict():
-        raise HTTPException(
-            status_code=401, detail="Strava account not connected.")
-
-    access_token = user_doc.to_dict()['strava_tokens'].get('access_token')
-    
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Invalid Strava token.")
-
-    try:
-        activities = strava_client.get_activities(
-            access_token=access_token, per_page=NBR_OF_ACTIVITIES)
-        return activities
-    except Exception as e:
-        print(f"Error fetching activities: {e}")
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch activities from Strava.")
 
 
 @api_router.post("/ai/suggest_workout")

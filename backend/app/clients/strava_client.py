@@ -32,7 +32,7 @@ def get_tokens(client_id: str, client_secret: str, code: str) -> Dict[str, Any]:
     response.raise_for_status()
     return response.json()
 
-def get_activities(access_token: str, per_page: int = 5) -> List[Dict[str, Any]]:
+def get_activities(access_token: str, per_page: int) -> List[Dict[str, Any]]:
     """
     Fetches the latest activities
     """
